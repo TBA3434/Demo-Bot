@@ -73,7 +73,13 @@ app.post('/webhook', async (req, res) => {
         console.log('Reply sent, status:', workvivoResp.status);
         return res.status(200).json({ success: true });
       } catch (axErr) {
-        console.error('Workvivo POST fail:', axErr.response?.data || axErr.message);
+        console.error('Full axios error:', {
+          message: axErr.message,
+          response: axErr.response?.data,
+          status: axErr.response?.status,
+          url: process.env.WORKVIVOAPIURL,
+          headersSent: { 'Workvivo-Id': process.env.WORKVIVOID }
+        });
         return res.status(500).json({ error: 'Failed to send reply' });
       }
     }
