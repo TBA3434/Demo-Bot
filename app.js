@@ -44,9 +44,6 @@ app.post('/webhook', async (req, res) => {
   
     const webhook = req.body;
   
-    // ALWAYS log the category check
-    console.log('CATEGORY CHECK:', webhook.category, webhook.category === 'bot_message_notification');
-  
     // Only reply on the second event
     if (webhook.category === 'bot_message_notification') {
       const userMessage = webhook.message?.text;
@@ -69,10 +66,8 @@ app.post('/webhook', async (req, res) => {
             Authorization: `Bearer ${process.env.WORKVIVOTOKEN}`,
             'Content-Type': 'application/json'
           }
-        }); 
+        });
         console.log('Workvivo reply status:', workvivoResp.status);
-        console.log('Reply sent, status:', workvivoResp.status);
-        return res.status(200).json({ success: true });
       } catch (axErr) {
         console.error('Full axios error:', {
           message: axErr.message,
@@ -81,11 +76,10 @@ app.post('/webhook', async (req, res) => {
           url: process.env.WORKVIVOAPIURL,
           headersSent: { 'Workvivo-Id': process.env.WORKVIVOID }
         });
-        return res.status(500).json({ error: 'Failed to send reply' });
       }
     }
   
-    // Acknowledge everything else
+    // Always return 200 so Workvivo stops retrying
     res.status(200).json({ success: true });
   });
 
