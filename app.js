@@ -48,6 +48,7 @@ app.post('/webhook', async (req, res) => {
       return res.status(200).json({ success: true });
     }
   
+    console.log('CATEGORY CHECK:', webhook.category, webhook.category === 'bot_message_notification');
     // Event 2: actually answer
     if (webhook.category === 'bot_message_notification') {
       const userMessage = webhook.message?.text;
