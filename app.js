@@ -31,58 +31,55 @@ function getAnswer(q) {
 
 // webhook entry
 app.post('/webhook', async (req, res) => {
-  console.log('RAW BODY:', JSON.stringify(req.body, null, 2));
-  try {
-    const token = req.headers['x-workvivo-jwt'];
-    if (!token) return res.status(401).json({ error: 'Missing Workvivo jwt' });
-    await verifyWorkvivoRequest(token);
-  } catch (e) {
-    console.error('JWT fail:', e.message);
-    return res.status(401).json({ error: 'Invalid signature' });
-  }
-
-  const text = req.body.message?.text || req.body.message?.message;
-  if (!text) {
-    console.warn('No text found – event ignored');
-    return res.status(200).json({ success: true });
-  }
-
-  const bot = req.body.bot;
-  const channel = req.body.channel;
-  console.log('DEBUG: bot=', bot, 'channel=', channel);
-  if (!bot || !channel) {
-    console.warn('Missing bot or channel – event ignored');
-    return res.status(200).json({ success: true });
-  }
-
-  const answer = getAnswer(text);
-  const payload = {
-    bot_userid: bot.bot_userid,
-    channel_url: channel.channel_url,
-    type: 'message',
-    message: answer
-  };
-
-  try {
-    const workvivoResp = await axios.post(process.env.WORKVIVOAPIURL, payload, {
-      headers: {
-        'Workvivo-Id': process.env.WORKVIVOID,
-        Authorization: `Bearer ${process.env.WORKVIVOTOKEN}`,
-        'Content-Type': 'application/json'
+    console.log('RAW BODY:', JSON.stringify(req.body, null, 2));
+    try {
+      const token = req.headers['x-workvivo-jwt'];
+      if (!token) return res.status(401).json({ error: 'Missing Workvivo jwt' });
+      await verifyWorkvivoRequest(token);
+    } catch (e) {
+      console.error('JWT fail:', e.message);
+      return res.status(401).json({ error: 'Invalid signature' });
+    }
+  
+    const webhook = req.body;
+  
+    // Event 1: just acknowledge
+    if (webhook.action === 'chat_bot_message_sent') {
+      return res.status(200).json({ success: true });
+    }
+  
+    // Event 2: actually answer
+    if (webhook.category === 'bot_message_notification') {
+      const userMessage = webhook.message?.text;
+      if (!userMessage) return res.status(200).json({ success: true });
+  
+      const answer = getAnswer(userMessage);
+  
+      const payload = {
+        bot_userid: webhook.bot.bot_userid,
+        channel_url: webhook.channel.channel_url,
+        type: 'message',
+        message: answer
+      };
+  
+      try {
+        const workvivoResp = await axios.post(process.env.WORKVIVOAPIURL, payload, {
+          headers: {
+            'Workvivo-Id': process.env.WORKVIVOID,
+            Authorization: `Bearer ${process.env.WORKVIVOTOKEN}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        console.log('Reply sent, status:', workvivoResp.status);
+        return res.status(200).json({ success: true });
+      } catch (axErr) {
+        console.error('Workvivo POST fail:', axErr.response?.data || axErr.message);
+        return res.status(500).json({ error: 'Failed to send reply' });
       }
-    });
-    console.log('Workvivo reply status:', workvivoResp.status, workvivoResp.data);
-    return res.status(200).json({ success: true });
-  } catch (axErr) {
-    console.error('Workvivo POST fail:', {
-      status: axErr.response?.status,
-      statusText: axErr.response?.statusText,
-      data: axErr.response?.data,
-      url: process.env.WORKVIVOAPIURL
-    });
-    return res.status(500).json({ error: 'Failed to send reply' });
-  }
-});
+    }
+  
+    res.status(200).json({ error: 'No action defined' });
+  });
 
 // health check
 app.get('/', (_, res) => res.send('Workvivo Demo-Bot running'));
