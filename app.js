@@ -53,6 +53,7 @@ app.post('/webhook', async (req, res) => {
       if (!userMessage) return res.status(200).json({ success: true });
   
       const answer = getAnswer(userMessage);
+      console.log('ANSWER:', answer, '-> posting to Workvivo');
   
       const payload = {
         bot_userid: webhook.bot.bot_userid,
@@ -68,7 +69,8 @@ app.post('/webhook', async (req, res) => {
             Authorization: `Bearer ${process.env.WORKVIVOTOKEN}`,
             'Content-Type': 'application/json'
           }
-        });
+        }); 
+        console.log('Workvivo reply status:', workvivoResp.status);
         console.log('Reply sent, status:', workvivoResp.status);
         return res.status(200).json({ success: true });
       } catch (axErr) {
