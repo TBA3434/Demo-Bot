@@ -32,6 +32,7 @@ function getAnswer(q) {
 // webhook entry
 app.post('/webhook', async (req, res) => {
     console.log('RAW BODY:', JSON.stringify(req.body, null, 2));
+  
     try {
       const token = req.headers['x-workvivo-jwt'];
       if (!token) return res.status(401).json({ error: 'Missing Workvivo jwt' });
@@ -43,13 +44,10 @@ app.post('/webhook', async (req, res) => {
   
     const webhook = req.body;
   
-    // Event 1: just acknowledge
-    if (webhook.action === 'chat_bot_message_sent') {
-      return res.status(200).json({ success: true });
-    }
-  
+    // ALWAYS log the category check
     console.log('CATEGORY CHECK:', webhook.category, webhook.category === 'bot_message_notification');
-    // Event 2: actually answer
+  
+    // Only reply on the second event
     if (webhook.category === 'bot_message_notification') {
       const userMessage = webhook.message?.text;
       if (!userMessage) return res.status(200).json({ success: true });
@@ -85,7 +83,8 @@ app.post('/webhook', async (req, res) => {
       }
     }
   
-    res.status(200).json({ error: 'No action defined' });
+    // Acknowledge everything else
+    res.status(200).json({ success: true });
   });
 
 // health check
