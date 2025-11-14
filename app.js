@@ -67,20 +67,24 @@ app.post('/webhook', async (req, res) => {
     };
   
     try {
-      await axios.post(process.env.WORKVIVOAPIURL, payload, {
-        headers: {
-          'Workvivo-Id': process.env.WORKVIVOID,
-          Authorization: `Bearer ${process.env.WORKVIVOTOKEN}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      console.log('Reply sent');
-      return res.status(200).json({ success: true });
-    } catch (axErr) {
-      console.error('Reply failed:', axErr.response?.data || axErr.message);
-      return res.status(500).json({ error: 'Failed to send reply' });
-    }
-  });
+        const workvivoResp = await axios.post(process.env.WORKVIVOAPIURL, payload, {
+          headers: {
+            'Workvivo-Id': process.env.WORKVIVOID,
+            Authorization: `Bearer ${process.env.WORKVIVOTOKEN}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        console.log('Workvivo reply status:', workvivoResp.status, workvivoResp.data);
+        return res.status(200).json({ success: true });
+      } catch (axErr) {
+        console.error('Workvivo POST fail:', {
+          status: axErr.response?.status,
+          statusText: axErr.response?.statusText,
+          data: axErr.response?.data,
+          url: process.env.WORKVIVOAPIURL
+        });
+        return res.status(500).json({ error: 'Failed to send reply' });
+      }
 
 // health check
 app.get('/', (_, res) => res.send('Workvivo Demo-Bot running'));
