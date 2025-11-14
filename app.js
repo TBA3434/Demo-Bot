@@ -44,7 +44,12 @@ app.post('/webhook', async (req, res) => {
   
     const webhook = req.body;
   
-    // Only reply on the second event
+    // Event 1: just acknowledge
+    if (webhook.action === 'chat_bot_message_sent') {
+      return res.status(200).json({ success: true });
+    }
+  
+    // Event 2: actually answer
     if (webhook.category === 'bot_message_notification') {
       const userMessage = webhook.message?.text;
       if (!userMessage) return res.status(200).json({ success: true });
@@ -68,6 +73,7 @@ app.post('/webhook', async (req, res) => {
           }
         });
         console.log('Workvivo reply status:', workvivoResp.status);
+        return res.status(200).json({ success: true });
       } catch (axErr) {
         console.error('Full axios error:', {
           message: axErr.message,
@@ -76,10 +82,10 @@ app.post('/webhook', async (req, res) => {
           url: process.env.WORKVIVOAPIURL,
           headersSent: { 'Workvivo-Id': process.env.WORKVIVOID }
         });
+        return res.status(500).json({ error: 'Failed to send reply' });
       }
     }
   
-    // Always return 200 so Workvivo stops retrying
     res.status(200).json({ success: true });
   });
 
