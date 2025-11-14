@@ -49,6 +49,7 @@ app.post('/webhook', async (req, res) => {
 
   const bot = req.body.bot;
   const channel = req.body.channel;
+  console.log('DEBUG: bot=', bot, 'channel=', channel);
   if (!bot || !channel) {
     console.warn('Missing bot or channel – event ignored');
     return res.status(200).json({ success: true });
