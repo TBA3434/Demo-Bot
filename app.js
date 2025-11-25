@@ -4,6 +4,7 @@
 require('dotenv').config();
 const express = require('express');
 const app = express();
+app.use(express.json());
 const jwt = require('jsonwebtoken');
 const jwksClient = require('jwks-rsa');
 const axios = require('axios');app.post('/webhook', async (req, res) => {
