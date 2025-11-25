@@ -41,6 +41,10 @@ const axios = require('axios');app.post('/webhook', async (req, res) => {
       };
   
       let requestPayload;
+
+      console.log('SWITCH TEXT:',
+      JSON.stringify(webhook.message?.text?.toLowerCase()));
+    
   
       switch (webhook.message?.text?.toLowerCase()) {
         case 'card':
