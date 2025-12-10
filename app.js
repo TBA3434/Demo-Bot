@@ -35,9 +35,10 @@ app.post('/webhook', async (req, res) => {
   try {
     const token = req.headers['x-workvivo-jwt'];
     if (!token) return res.status(401).json({ error: 'Missing Workvivo jwt' });
+    console.log("verify: ");
     await verifyWorkvivoRequest(token);
   } catch (e) {
-    console.error('JWT fail:', e.message);
+    console.log('JWT fail:', e.message);
     return res.status(401).json({ error: 'Invalid signature' });
   }
 
