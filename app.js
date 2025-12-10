@@ -42,6 +42,7 @@ app.post('/webhook', async (req, res) => {
   }
 
   const text = req.body.message?.text || req.body.message?.message;
+  console.log("TEXT: ", text);
   if (!text) {
     console.warn('No text found – event ignored');
     return res.status(200).json({ success: true });
@@ -49,12 +50,14 @@ app.post('/webhook', async (req, res) => {
 
   const bot = req.body.bot;
   const channel = req.body.channel;
+  console.log("channel log: ", channel);
   if (!bot || !channel) {
     console.warn('Missing bot or channel – event ignored');
     return res.status(200).json({ success: true });
   }
 
   const answer = getAnswer(text);
+  console.log("answer:", answer);
   const payload = {
     bot_userid: bot.bot_userid,
     channel_url: channel.channel_url,
